@@ -1,0 +1,12 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/app/build
+/DotClock-Android-project.zip
+/DotClock-Android-project
+/captures
+.externalNativeBuild
+.cxx

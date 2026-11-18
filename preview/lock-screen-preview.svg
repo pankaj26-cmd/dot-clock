@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="2400" viewBox="0 0 1080 2400">
+<defs><linearGradient id="bg" x1=".12" y1="0" x2=".9" y2="1"><stop stop-color="#161717"/><stop offset=".52" stop-color="#0b0c0c"/><stop offset="1" stop-color="#080909"/></linearGradient><radialGradient id="glow"><stop stop-color="#7d201e" stop-opacity=".22"/><stop offset="1" stop-color="#080909" stop-opacity="0"/></radialGradient><pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#b0b6b5" opacity=".17"/></pattern><filter id="soft"><feGaussianBlur stdDeviation="74"/></filter></defs>
+<rect width="1080" height="2400" fill="url(#bg)"/><ellipse cx="523" cy="1020" rx="360" ry="470" fill="url(#glow)" filter="url(#soft)"/><rect width="1080" height="2400" fill="url(#dots)"/>
+<!-- status bar -->
+<text x="74" y="83" fill="#f4f4f2" font-family="Arial,sans-serif" font-size="31" font-weight="600">9:41</text>
+<g fill="none" stroke="#f4f4f2" stroke-width="5" stroke-linecap="round"><path d="M862 71h8m-8 9h8m-8 9h8"/><path d="M887 86a22 22 0 0 1 35 0m-29-5a14 14 0 0 1 22 0m-15 5a5 5 0 0 1 8 0"/><rect x="939" y="61" width="52" height="27" rx="7"/><path d="M995 69v11"/></g><rect x="944" y="66" width="39" height="17" rx="3" fill="#f4f4f2"/>
+<!-- date and time -->
+<text x="540" y="592" text-anchor="middle" fill="#efefed" font-family="Arial,sans-serif" font-size="30" letter-spacing="4" font-weight="600">FRIDAY  •  30 OCTOBER</text>
+<text x="540" y="835" text-anchor="middle" fill="#ffffff" font-family="Arial,sans-serif" font-size="226" font-weight="300" letter-spacing="-12">09:41</text>
+<text x="540" y="901" text-anchor="middle" fill="#b8bab8" font-family="Arial,sans-serif" font-size="33">A little more space to breathe.</text>
+<!-- restrained glyph marks -->
+<g fill="#e33c38"><circle cx="477" cy="1110" r="6"/><circle cx="508" cy="1110" r="6"/><circle cx="539" cy="1110" r="6"/><circle cx="570" cy="1110" r="6"/><circle cx="601" cy="1110" r="6"/></g>
+<!-- lock screen shortcuts and fingerprint prompt -->
+<circle cx="156" cy="2177" r="59" fill="#ffffff" fill-opacity=".11"/><circle cx="924" cy="2177" r="59" fill="#ffffff" fill-opacity=".11"/><g stroke="#f1f1ef" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M141 2160l-18 18 18 18m30-36 18 18-18 18m-11-48-9 60"/><path d="M904 2163h40v29h-40zM912 2153h24m-15 50h6"/></g><text x="540" y="2214" text-anchor="middle" fill="#dededc" font-family="Arial,sans-serif" font-size="27" letter-spacing="3">●</text>
+<rect x="390" y="2350" width="300" height="10" rx="5" fill="#f3f3f1" fill-opacity=".8"/>
+</svg>
+
