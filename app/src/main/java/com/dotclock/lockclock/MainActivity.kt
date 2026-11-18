@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.telephony.TelephonyManager
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -28,6 +29,7 @@ class MainActivity : Activity() {
     private var clockFace: ClockFaceView? = null
     private var buttonLayout: LinearLayout? = null
     private var userPresentReceiver: BroadcastReceiver? = null
+    private var phoneStateReceiver: BroadcastReceiver? = null
 
     private val autoHideHandler = Handler(Looper.getMainLooper())
     private val autoHideRunnable = Runnable {
@@ -36,6 +38,11 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (isPhoneCalling()) {
+            closeAndRemoveFromRecents()
+            return
+        }
 
         BootReceiver.startDotClockService(this)
 
@@ -80,11 +87,13 @@ class MainActivity : Activity() {
         clockFace = ClockFaceView(this).apply {
             isClockContentVisible = false
             onSingleTapListener = {
-                // Single tap: Show Dot Clock for 30 seconds then auto-disappear
-                showClockFor30Seconds()
+                if (!isPhoneCalling()) {
+                    showClockFor30Seconds()
+                } else {
+                    closeAndRemoveFromRecents()
+                }
             }
             onDoubleTapListener = {
-                // Double tap: Open normal phone lock screen
                 openSystemLockScreen()
             }
         }
@@ -129,13 +138,13 @@ class MainActivity : Activity() {
 
         setContentView(root)
         hideSystemUI()
-        registerUnlockReceiver()
+        registerReceivers()
 
         // Hidden by default when locked
         hideClockAutomatically()
     }
 
-    private fun registerUnlockReceiver() {
+    private fun registerReceivers() {
         if (userPresentReceiver == null) {
             userPresentReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -146,6 +155,31 @@ class MainActivity : Activity() {
             }
             val filter = IntentFilter(Intent.ACTION_USER_PRESENT)
             registerReceiver(userPresentReceiver, filter)
+        }
+
+        if (phoneStateReceiver == null) {
+            phoneStateReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    if (intent.action == TelephonyManager.ACTION_PHONE_STATE_CHANGED) {
+                        if (isPhoneCalling()) {
+                            closeAndRemoveFromRecents()
+                        }
+                    }
+                }
+            }
+            val filter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
+            registerReceiver(phoneStateReceiver, filter)
+        }
+    }
+
+    private fun isPhoneCalling(): Boolean {
+        return try {
+            val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            @Suppress("DEPRECATION")
+            val state = telephonyManager?.callState ?: TelephonyManager.CALL_STATE_IDLE
+            state != TelephonyManager.CALL_STATE_IDLE
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -165,6 +199,10 @@ class MainActivity : Activity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (isPhoneCalling()) {
+            closeAndRemoveFromRecents()
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(false)
@@ -204,6 +242,10 @@ class MainActivity : Activity() {
     }
 
     private fun showClockFor30Seconds() {
+        if (isPhoneCalling()) {
+            closeAndRemoveFromRecents()
+            return
+        }
         autoHideHandler.removeCallbacks(autoHideRunnable)
 
         try {
@@ -250,6 +292,10 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        if (isPhoneCalling()) {
+            closeAndRemoveFromRecents()
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(false)
@@ -269,6 +315,12 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         userPresentReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (_: Exception) {
+            }
+        }
+        phoneStateReceiver?.let {
             try {
                 unregisterReceiver(it)
             } catch (_: Exception) {

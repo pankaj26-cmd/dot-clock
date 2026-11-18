@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.telephony.TelephonyManager
 
 class DotClockService : Service() {
     private var screenReceiver: BroadcastReceiver? = null
@@ -20,7 +21,9 @@ class DotClockService : Service() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val launchRunnable = Runnable {
-        launchLockScreenClock()
+        if (!isPhoneCalling()) {
+            launchLockScreenClock()
+        }
     }
 
     override fun onCreate() {
@@ -55,26 +58,45 @@ class DotClockService : Service() {
         if (screenReceiver == null) {
             screenReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                        handler.removeCallbacks(launchRunnable)
-                        // Post 300ms delay so system screen-off lock animation completes without glitch
-                        handler.postDelayed(launchRunnable, 300L)
-                    } else if (intent.action == Intent.ACTION_SCREEN_ON) {
-                        handler.removeCallbacks(launchRunnable)
-                        launchLockScreenClock()
+                    when (intent.action) {
+                        Intent.ACTION_SCREEN_OFF -> {
+                            handler.removeCallbacks(launchRunnable)
+                            if (!isPhoneCalling()) {
+                                handler.postDelayed(launchRunnable, 300L)
+                            }
+                        }
+                        TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
+                            if (isPhoneCalling()) {
+                                handler.removeCallbacks(launchRunnable)
+                            }
+                        }
                     }
                 }
             }
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_OFF)
-                addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_USER_PRESENT)
+                @Suppress("DEPRECATION")
+                addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
             }
             registerReceiver(screenReceiver, filter)
         }
     }
 
+    private fun isPhoneCalling(): Boolean {
+        return try {
+            val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            @Suppress("DEPRECATION")
+            val state = telephonyManager?.callState ?: TelephonyManager.CALL_STATE_IDLE
+            state != TelephonyManager.CALL_STATE_IDLE
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     private fun launchLockScreenClock() {
+        if (isPhoneCalling()) return
+
         val lockIntent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -115,7 +137,9 @@ class DotClockService : Service() {
     }
 
     private fun startForegroundNotification() {
-        launchLockScreenClock()
+        if (!isPhoneCalling()) {
+            launchLockScreenClock()
+        }
     }
 
     override fun onDestroy() {
